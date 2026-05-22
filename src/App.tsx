@@ -256,6 +256,57 @@ export default function App() {
     setIsAnalyzing(true);
     setErrorMessage('');
 
+    // Pre-align any members that are still pending or missing preferences so the planner doesn't fail
+    const updatedMembers = trip.members.map((m) => {
+      if (m.status === 'completed' && m.preferences && m.preferences.length > 0) {
+        return m;
+      }
+
+      // Member is pending or empty: Autofill with smart default preset based on traveler ID or fallback
+      const templates: Record<string, { notes: string; favOrder: string[] }> = {
+        'leader-id-100': {
+          favOrder: ['food', 'leisure', 'recreation', 'culture', 'nightlife', 'extreme adventure'],
+          notes: 'Enjoys gourmet fine dining, loves taking lazy afternoon cafe walks, prefers hotels with built-in spa/wellness resources.'
+        },
+        'companion-1': {
+          favOrder: ['culture', 'leisure', 'food', 'recreation', 'nightlife', 'extreme adventure'],
+          notes: 'Loves classical art history museums, historical tours, hates loud extreme sports, looking for scenic views to take photos.'
+        },
+        'companion-2': {
+          favOrder: ['extreme adventure', 'nightlife', 'recreation', 'food', 'culture', 'leisure'],
+          notes: 'Highly active individual, looking for bungee jumping or volcanic hiking, wants loud electronic music joints in the evenings.'
+        },
+      };
+
+      const defaultTemplate = {
+        favOrder: ['recreation', 'leisure', 'food', 'culture', 'extreme adventure', 'nightlife'],
+        notes: 'Wants a relaxed experience sightseeing, comfortable bus transfers, enjoys regional street food tours.'
+      };
+
+      const config = templates[m.id] || defaultTemplate;
+
+      const ranked: RankedPreference[] = config.favOrder.map((cat, idx) => {
+        const label = PRESET_PREFERENCES.find((p) => p.category === cat)?.label || cat;
+        return {
+          category: cat,
+          label,
+          rank: idx + 1
+        };
+      });
+
+      return {
+        ...m,
+        status: 'completed' as const,
+        preferences: ranked,
+        customNotes: config.notes
+      };
+    });
+
+    const tripWithPreparedMembers = {
+      ...trip,
+      members: updatedMembers
+    };
+
     try {
       const response = await fetch('/api/generate-itinerary', {
         method: 'POST',
@@ -263,11 +314,11 @@ export default function App() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: trip.name,
-          destination: trip.destination,
-          startDate: trip.startDate,
-          endDate: trip.endDate,
-          members: trip.members
+          name: tripWithPreparedMembers.name,
+          destination: tripWithPreparedMembers.destination,
+          startDate: tripWithPreparedMembers.startDate,
+          endDate: tripWithPreparedMembers.endDate,
+          members: tripWithPreparedMembers.members
         }),
       });
 
@@ -279,7 +330,7 @@ export default function App() {
       setAiSource(data.source || 'offline-fallback');
 
       const updated: Trip = {
-        ...trip,
+        ...tripWithPreparedMembers,
         status: 'itinerary',
         itinerary: data.itinerary
       };

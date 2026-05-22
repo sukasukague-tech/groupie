@@ -236,14 +236,14 @@ export default function MembersList({
           {/* Proceed to Generation Action Screen */}
           <div className="mt-8 pt-6 border-t border-border-geo flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-[10px] text-gray-geo text-center sm:text-left font-semibold max-w-sm">
-              Ensure you have at least 2 travelers (Leader + invites) and all of them have completed preferences to generate the best matched consensus.
+              Ready to coordinate? Click Align below to compile preferences. Any pending traveler surveys will be automatically filled with smart defaults to ensure a rich consensus.
             </div>
             <button
               onClick={onProceedToAlignment}
-              disabled={!allCompleted}
-              className={`w-full sm:w-auto text-[10px] font-black py-3 px-6 rounded-full shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer uppercase tracking-widest ${
-                allCompleted
-                  ? 'bg-[#2D3436] hover:bg-black text-white active:scale-98'
+              disabled={members.length === 0}
+              className={`w-full sm:w-auto text-[10px] font-black py-3.5 px-7 rounded-full shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer uppercase tracking-widest ${
+                members.length > 0
+                  ? 'bg-primary-geo hover:bg-black text-white active:scale-98'
                   : 'bg-light-geo border border-border-geo text-slate-300 cursor-not-allowed opacity-80'
               }`}
               id="generate_itinerary_trigger"
