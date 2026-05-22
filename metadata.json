@@ -1,0 +1,6 @@
+{
+  "name": "Group Travel Planner",
+  "description": "Organize, build consensus, and secure group trips by aligning traveler preferences and generating unified agendas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
